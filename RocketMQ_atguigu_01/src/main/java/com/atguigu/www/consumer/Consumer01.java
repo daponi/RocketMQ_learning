@@ -25,7 +25,7 @@ public class Consumer01 {
         // 指定从第一条消息开始消费
         consumer.setConsumeFromWhere(ConsumeFromWhere.CONSUME_FROM_FIRST_OFFSET);
         // 指定消费topic与tag
-        consumer.subscribe("TopicOneway", "*");
+        consumer.subscribe("TopicActionDemo", "*");
         // 指定采用“广播模式”进行消费，广播消费模式下，相同Consumer Group的每个Consumer实例都接收同一个Topic的全量消息.
         // 默认为“集群模式”,群消费模式下，相同Consumer Group的每个Consumer实例平均分摊同一个Topic的消息。即每条消息只会被发送到Consumer Group中的某个Consumer。
         consumer.setMessageModel(MessageModel.BROADCASTING);
