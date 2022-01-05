@@ -1,4 +1,4 @@
-package com.itheima.www.producer;
+package com.itheima.www.base.producer;
 
 import org.apache.rocketmq.client.exception.MQBrokerException;
 import org.apache.rocketmq.client.exception.MQClientException;

@@ -47,7 +47,7 @@ public class TransactionProducer {
         for (int i = 0; i < 3; i++) {
             byte[] body = ("Hello,Transaction Message No." + i).getBytes(StandardCharsets.UTF_8);
             Message msg = new Message("TopicActionDemo", tags[i], body);
-            // 发送事务消息,第二个参数用于指定在执行本地事务时要使用的业务参数，第二个参数可以传给监听器
+            // 发送事务消息,第二个参数用于指定在执行本地事务时要使用的业务参数，第二个参数可以传给监听器，args参数与本地事务执行器一起使用。
             TransactionSendResult sendResult = producer.sendMessageInTransaction(msg, "这是第二参数");
             System.out.println("发送结果:"+sendResult.getSendStatus());//发送结果:SEND_OK
         }

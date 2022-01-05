@@ -11,7 +11,7 @@ import org.apache.rocketmq.common.message.MessageExt;
  */
 public class ICBCTransactionListener implements TransactionListener {
 
-    // 回调操作方法，消息预提交成功就会触发该方法的执行，用于完成本地事务，第二个参数可以是producer发送消息时锁传送的
+    // 回调操作方法，消息预提交成功就会触发该方法的执行，用于完成本地事务，第二个参数可以是producer发送消息时锁传送的,args 参数与本地事务执行器一起使用。
     @Override
     public LocalTransactionState executeLocalTransaction(Message msg, Object arg) {
         System.out.println("预提交消息成功：" + msg);
