@@ -11,6 +11,7 @@
     <modules>
         <module>RocketMQ_atguigu_01</module>
         <module>RocketMQ_itheima_01</module>
+        <module>RocketMQ_itheima_02_producer</module>
     </modules>
 
     <properties>
@@ -19,11 +20,5 @@
         <maven.compiler.target>8</maven.compiler.target>
     </properties>
 
-    <dependencies>
-        <dependency>
-            <groupId>org.apache.rocketmq</groupId>
-            <artifactId>rocketmq-client</artifactId>
-            <version>4.9.2</version>
-        </dependency>
-    </dependencies>
+
 </project>

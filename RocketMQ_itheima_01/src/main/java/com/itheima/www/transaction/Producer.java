@@ -39,7 +39,7 @@ public class Producer {
             }
 
             /**
-             * 该方法时MQ进行消息事务状态回查
+             * 该方法是MQ进行消息事务状态回查
              * @param msg
              * @return
              */

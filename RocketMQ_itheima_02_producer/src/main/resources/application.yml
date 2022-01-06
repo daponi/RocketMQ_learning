@@ -1,0 +1,9 @@
+
+# rocketmq.name-server和rocketmq.producer.group一定要配置，否则项目无法启动，
+# 在封装成中间件的时rocketmq.producer.group可以随意指定一个，亲测即便指定了也不会在启动的时候就生成这个生产者的
+# group.rocketmq.producer.enable这 为了让rocketmq能按需加载，因为封装成中间件的话其他模块引入，有的可能用不到，所以bean需要按条件加载。
+rocketmq:
+#  name-server: my01:9876;my02:9876
+  name-server: my01:9876
+  producer:
+    group: my-goup
