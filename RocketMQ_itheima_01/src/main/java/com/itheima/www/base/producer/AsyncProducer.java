@@ -36,18 +36,20 @@ public class AsyncProducer {
         for (int i = 0; i < 10; i++) {
             byte[] body = ("SyncProducer,Msg " + i + " ...").getBytes(StandardCharsets.UTF_8);
             // 4.创建消息对象，指定主题Topic、Tag和消息体
-            Message msg = new Message("TopicDemo02", "TagsDemo-Async", body);;
+            Message msg = new Message("TopicDemo02", "TagsDemo-Async", body);
+            ;
             // 5.发送异步消息
-             producer.send(msg, new SendCallback() {
+            producer.send(msg, new SendCallback() {
                 // 收到ack的回调函数
                 @Override
                 public void onSuccess(SendResult sendResult) {
-                    System.out.println("发送结果:"+sendResult);
+                    System.out.println("发送结果:" + sendResult);
                 }
+
                 // 发送失败回调函数
                 @Override
                 public void onException(Throwable e) {
-                    System.out.println("发送异常:"+e);
+                    System.out.println("发送异常:" + e);
                 }
             });
         }

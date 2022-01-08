@@ -35,8 +35,8 @@ public class Consumer {
             @Override
             public ConsumeConcurrentlyStatus consumeMessage(List<MessageExt> msgs, ConsumeConcurrentlyContext context) {
                 for (MessageExt msg : msgs) {
-                    System.out.println("消息:"+msg);
-                System.out.printf("%s Receive New Messages: %s %n", Thread.currentThread().getName(), msg);
+                    System.out.println("消息:" + msg);
+                    System.out.printf("%s Receive New Messages: %s %n", Thread.currentThread().getName(), msg);
 
                 }
                 // 标记该消息已经被成功消费

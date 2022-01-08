@@ -33,10 +33,11 @@ public class SyncProducer {
         for (int i = 0; i < 10; i++) {
             byte[] body = ("SyncProducer,Msg " + i + " ...").getBytes(StandardCharsets.UTF_8);
             // 4.创建消息对象，指定主题Topic、Tag和消息体
-            Message msg = new Message("TopicDemo02", "TagsDemo-sync", body);;
+            Message msg = new Message("TopicDemo02", "TagsDemo-sync", body);
+            ;
             // 5.发送同步消息
             SendResult result = producer.send(msg);
-            System.out.println("发送结果:"+result);
+            System.out.println("发送结果:" + result);
         }
         producer.shutdown();
     }
