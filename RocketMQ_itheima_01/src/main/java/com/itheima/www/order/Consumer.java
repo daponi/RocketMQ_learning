@@ -28,7 +28,7 @@ public class Consumer {
             public ConsumeOrderlyStatus consumeMessage(List<MessageExt> msgs, ConsumeOrderlyContext context) {
                 // 消费者一个线程负责顺序消费一个队列里的全部消息，一个订单号的所有消息都放在一个队列
                 for (MessageExt msg : msgs) {
-                    System.out.println("线程名称：【" + Thread.currentThread().getName() + "】，" +"消息："+ new String(msg.getBody()));
+                    System.out.println("线程名称：【" + Thread.currentThread().getName() + "】，" + "消息：" + new String(msg.getBody()));
                 }
                 return ConsumeOrderlyStatus.SUCCESS;
             }

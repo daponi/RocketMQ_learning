@@ -51,7 +51,7 @@ public class Producer {
                     return mqs.get((int) index);
                 }
             }, orderId);
-            System.out.println("发送结果:"+sendResult);
+            System.out.println("发送结果:" + sendResult);
         }
         // 关闭实例
         producer.shutdown();

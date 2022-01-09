@@ -37,9 +37,9 @@ public class OrderStep {
 
     /**
      * 生成模拟订单数据
-     *   1039L   : 创建    付款 推送 完成
-     *   1065L   ： 创建   付款 完成
-     *   7235L   ：创建    付款 完成
+     * 1039L   : 创建    付款 推送 完成
+     * 1065L   ： 创建   付款 完成
+     * 7235L   ：创建    付款 完成
      */
     public static List<OrderStep> buildOrders() {
         List<OrderStep> orderList = new ArrayList<OrderStep>();
