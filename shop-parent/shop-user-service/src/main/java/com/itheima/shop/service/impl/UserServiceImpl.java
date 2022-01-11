@@ -66,8 +66,8 @@ public class UserServiceImpl implements IUserService{
         }
         //4.回退余额...
         if(userMoneyLog.getMoneyLogType().intValue()==ShopCode.SHOP_USER_MONEY_REFUND.getCode().intValue()){
-            if(r<0){
                 //如果没有支付,则不能回退余额
+            if(r==0){
                 CastException.cast(ShopCode.SHOP_ORDER_PAY_STATUS_NO_PAY);
             }
             //防止多次退款

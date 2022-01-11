@@ -20,7 +20,6 @@ import org.apache.rocketmq.client.exception.MQClientException;
 import org.apache.rocketmq.common.message.Message;
 import org.apache.rocketmq.remoting.exception.RemotingException;
 import org.apache.rocketmq.spring.core.RocketMQTemplate;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -119,13 +118,14 @@ public class OrderServiceImpl implements IOrderService {
      */
     private void updateOrderStatus(TradeOrder order) {
         order.setOrderStatus(ShopCode.SHOP_ORDER_CONFIRM.getCode());
+        // 分两部分，一部分是用余额付款，payamount是0，没用余额付款payamount就不是0，但是都是未付款
         order.setPayStatus(ShopCode.SHOP_ORDER_PAY_STATUS_NO_PAY.getCode());
         order.setConfirmTime(new Date());
         int r = orderMapper.updateByPrimaryKey(order);
         if(r<=0){
             CastException.cast(ShopCode.SHOP_ORDER_CONFIRM_FAIL);
         }
-        log.info("订单:"+order.getOrderId()+"确认订单成功");
+        log.info("===============订单:"+order.getOrderId()+"确认订单成功");
     }
 
     /**
