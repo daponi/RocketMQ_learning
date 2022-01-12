@@ -8,6 +8,7 @@ import com.itheima.shop.mapper.TradeGoodsNumberLogMapper;
 import com.itheima.shop.mapper.TradeMqConsumerLogMapper;
 import com.itheima.shop.pojo.*;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.Charsets;
 import org.apache.rocketmq.common.message.MessageExt;
 import org.apache.rocketmq.spring.annotation.MessageModel;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
@@ -48,7 +49,7 @@ public class CancelMQListener implements RocketMQListener<MessageExt>{
             msgId = messageExt.getMsgId();
             tags= messageExt.getTags();
             keys= messageExt.getKeys();
-            body= new String(messageExt.getBody(),"UTF-8");
+            body= new String(messageExt.getBody(), Charsets.UTF_8);
 
             log.info("接受消息成功");
 
@@ -65,13 +66,13 @@ public class CancelMQListener implements RocketMQListener<MessageExt>{
                 Integer status = mqConsumerLog.getConsumerStatus();
                 //处理过...返回
                 if(ShopCode.SHOP_MQ_MESSAGE_STATUS_SUCCESS.getCode().intValue()==status.intValue()){
-                    log.info("消息:"+msgId+",已经处理过");
+                    log.info("====================消息:"+msgId+",已经处理过");
                     return;
                 }
 
                 //正在处理...返回
                 if(ShopCode.SHOP_MQ_MESSAGE_STATUS_PROCESSING.getCode().intValue()==status.intValue()){
-                    log.info("消息:"+msgId+",正在处理");
+                    log.info("====================消息:"+msgId+",正在处理");
                     return;
                 }
 
@@ -80,12 +81,12 @@ public class CancelMQListener implements RocketMQListener<MessageExt>{
                     //获得消息处理次数
                     Integer times = mqConsumerLog.getConsumerTimes();
                     if(times>3){
-                        log.info("消息:"+msgId+",消息处理超过3次,不能再进行处理了");
+                        log.info("====================消息:"+msgId+",消息处理超过3次,不能再进行处理了");
                         return;
                     }
                     mqConsumerLog.setConsumerStatus(ShopCode.SHOP_MQ_MESSAGE_STATUS_PROCESSING.getCode());
 
-                    //使用数据库乐观锁更新
+                    //使用数据库乐观锁更新,这里是根据条件次数比较然后进行修改，这就是乐观锁
                     TradeMqConsumerLogExample example = new TradeMqConsumerLogExample();
                     TradeMqConsumerLogExample.Criteria criteria = example.createCriteria();
                     criteria.andMsgTagEqualTo(mqConsumerLog.getMsgTag());
@@ -95,7 +96,7 @@ public class CancelMQListener implements RocketMQListener<MessageExt>{
                     int r = mqConsumerLogMapper.updateByExampleSelective(mqConsumerLog, example);
                     if(r<=0){
                         //未修改成功,其他线程并发修改
-                        log.info("并发修改,稍后处理");
+                        log.info("====================并发修改,稍后处理");
                     }
                 }
 
@@ -117,6 +118,7 @@ public class CancelMQListener implements RocketMQListener<MessageExt>{
             MQEntity mqEntity = JSON.parseObject(body, MQEntity.class);
             Long goodsId = mqEntity.getGoodsId();
             TradeGoods goods = goodsMapper.selectByPrimaryKey(goodsId);
+            //5.1 回退商品库存数量
             goods.setGoodsNumber(goods.getGoodsNumber()+mqEntity.getGoodsNum());
             goodsMapper.updateByPrimaryKey(goods);
 
@@ -125,8 +127,9 @@ public class CancelMQListener implements RocketMQListener<MessageExt>{
             mqConsumerLog.setConsumerStatus(ShopCode.SHOP_MQ_MESSAGE_STATUS_SUCCESS.getCode());
             mqConsumerLog.setConsumerTimestamp(new Date());
             mqConsumerLogMapper.updateByPrimaryKey(mqConsumerLog);
-            log.info("回退库存成功");
+            log.info("====================回退库存成功");
         } catch (Exception e) {
+            //消费失败
             e.printStackTrace();
             TradeMqConsumerLogKey primaryKey = new TradeMqConsumerLogKey();
             primaryKey.setMsgTag(tags);
@@ -145,6 +148,7 @@ public class CancelMQListener implements RocketMQListener<MessageExt>{
                 mqConsumerLog.setConsumerTimes(1);
                 mqConsumerLogMapper.insert(mqConsumerLog);
             }else{
+                // 失败次数+1
                 mqConsumerLog.setConsumerTimes(mqConsumerLog.getConsumerTimes()+1);
                 mqConsumerLogMapper.updateByPrimaryKeySelective(mqConsumerLog);
             }

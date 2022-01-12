@@ -38,6 +38,7 @@ public class OrderServiceTest {
         order.setMoneyPaid(new BigDecimal(100));
         orderService.confirmOrder(order);
 
+        // 监听键盘的输入 ，让线程一直运行，防止主线程走完而其它服务还没运行完
         System.in.read();
 
     }

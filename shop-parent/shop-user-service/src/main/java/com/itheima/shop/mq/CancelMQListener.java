@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 
 
 @Slf4j
@@ -31,7 +32,7 @@ public class CancelMQListener implements RocketMQListener<MessageExt>{
 
         try {
             //1.解析消息
-            String body = new String(messageExt.getBody(), "UTF-8");
+            String body = new String(messageExt.getBody(), StandardCharsets.UTF_8);
             MQEntity mqEntity = JSON.parseObject(body, MQEntity.class);
             log.info("接收到消息");
             if(mqEntity.getUserMoney()!=null && mqEntity.getUserMoney().compareTo(BigDecimal.ZERO)>0){
@@ -44,7 +45,7 @@ public class CancelMQListener implements RocketMQListener<MessageExt>{
                 userService.updateMoneyPaid(userMoneyLog);
                 log.info("余额回退成功");
             }
-        } catch (UnsupportedEncodingException e) {
+        } catch (Exception e) {
             e.printStackTrace();
             log.error("余额回退失败");
         }

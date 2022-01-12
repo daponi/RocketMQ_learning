@@ -6,6 +6,7 @@ import com.itheima.shop.mapper.TradeOrderMapper;
 import com.itheima.shop.pojo.TradeOrder;
 import com.itheima.shop.pojo.TradePay;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.Charsets;
 import org.apache.rocketmq.common.message.MessageExt;
 import org.apache.rocketmq.spring.annotation.MessageModel;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
@@ -14,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 
 
 @Slf4j
@@ -31,7 +33,7 @@ public class PaymentListener implements RocketMQListener<MessageExt>{
 
         try {
             //1.解析消息内容
-            String body = new String(messageExt.getBody(),"UTF-8");
+            String body = new String(messageExt.getBody(), StandardCharsets.UTF_8);
             TradePay tradePay = JSON.parseObject(body,TradePay.class);
             //2.根据订单ID查询订单对象
             TradeOrder tradeOrder = orderMapper.selectByPrimaryKey(tradePay.getOrderId());
@@ -40,7 +42,7 @@ public class PaymentListener implements RocketMQListener<MessageExt>{
             //4.更新订单数据到数据库
             orderMapper.updateByPrimaryKey(tradeOrder);
             log.info("更改订单支付状态为已支付");
-        } catch (UnsupportedEncodingException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
 

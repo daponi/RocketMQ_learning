@@ -73,7 +73,7 @@ public class OrderServiceImpl implements IOrderService {
             //5.使用余额
             reduceMoneyPaid(order);
 
-            //模拟异常抛出
+            //模拟异常抛出，测试进行回退
             //CastException.cast(ShopCode.SHOP_FAIL);
 
             //6.确认订单

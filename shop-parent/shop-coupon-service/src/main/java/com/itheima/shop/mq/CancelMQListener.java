@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 
 
 @Slf4j
@@ -30,9 +31,9 @@ public class CancelMQListener implements RocketMQListener<MessageExt> {
 
         try {
             //1. 解析消息内容
-            String body = new String(message.getBody(), "UTF-8");
+            String body = new String(message.getBody(), StandardCharsets.UTF_8);
             MQEntity mqEntity = JSON.parseObject(body, MQEntity.class);
-            log.info("接收到消息");
+            log.info("===================接收到消息");
             if(mqEntity.getCouponId()!=null){
                 //2. 查询优惠券信息
                 TradeCoupon coupon = couponMapper.selectByPrimaryKey(mqEntity.getCouponId());
@@ -42,10 +43,10 @@ public class CancelMQListener implements RocketMQListener<MessageExt> {
                 coupon.setOrderId(null);
                 couponMapper.updateByPrimaryKey(coupon);
             }
-            log.info("回退优惠券成功");
-        } catch (UnsupportedEncodingException e) {
+            log.info("===================回退优惠券成功");
+        } catch (Exception e) {
             e.printStackTrace();
-            log.error("回退优惠券失败");
+            log.error("===================回退优惠券失败");
         }
 
     }
