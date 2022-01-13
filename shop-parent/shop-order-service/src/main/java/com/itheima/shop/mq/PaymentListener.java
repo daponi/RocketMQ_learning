@@ -20,8 +20,8 @@ import java.nio.charset.StandardCharsets;
 
 @Slf4j
 @Component
-@RocketMQMessageListener(topic = "${mq.pay.topic}",consumerGroup = "${mq.pay.consumer.group.name}",messageModel = MessageModel.BROADCASTING)
-public class PaymentListener implements RocketMQListener<MessageExt>{
+@RocketMQMessageListener(topic = "${mq.pay.topic}", consumerGroup = "${mq.pay.consumer.group.name}", messageModel = MessageModel.BROADCASTING)
+public class PaymentListener implements RocketMQListener<MessageExt> {
 
     @Autowired
     private TradeOrderMapper orderMapper;
@@ -34,7 +34,7 @@ public class PaymentListener implements RocketMQListener<MessageExt>{
         try {
             //1.解析消息内容
             String body = new String(messageExt.getBody(), StandardCharsets.UTF_8);
-            TradePay tradePay = JSON.parseObject(body,TradePay.class);
+            TradePay tradePay = JSON.parseObject(body, TradePay.class);
             //2.根据订单ID查询订单对象
             TradeOrder tradeOrder = orderMapper.selectByPrimaryKey(tradePay.getOrderId());
             //3.更改订单支付状态为已支付
