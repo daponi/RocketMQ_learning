@@ -23,6 +23,9 @@ public class PayServiceTest {
     @Autowired
     private IPayService payService;
 
+    /**
+     * 生成支付订单
+     */
     @Test
     public void createPayment(){
         long orderId = 351526299216515072L;
@@ -32,6 +35,9 @@ public class PayServiceTest {
         payService.createPayment(tradePay);
     }
 
+    /**
+     * 支付回调
+     */
     @Test
     public void callbackPayment() throws InterruptedException, RemotingException, MQClientException, MQBrokerException, IOException {
 
@@ -44,6 +50,7 @@ public class PayServiceTest {
         tradePay.setIsPaid(ShopCode.SHOP_ORDER_PAY_STATUS_IS_PAY.getCode());
         payService.callbackPayment(tradePay);
 
+        // 监听键盘的输入 ，让线程一直运行，防止主线程走完而其它服务还没运行完
         System.in.read();
 
     }

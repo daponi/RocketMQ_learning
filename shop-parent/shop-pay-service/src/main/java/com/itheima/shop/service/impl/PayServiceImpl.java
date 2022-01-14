@@ -98,8 +98,9 @@ public class PayServiceImpl implements IPayService{
                 CastException.cast(ShopCode.SHOP_PAYMENT_NOT_FOUND);
             }
             pay.setIsPaid(ShopCode.SHOP_ORDER_PAY_STATUS_IS_PAY.getCode());
+            // 更新数据库并获得结果
             int r = tradePayMapper.updateByPrimaryKeySelective(pay);
-            log.info("支付订单状态改为已支付");
+            log.info("===============支付订单状态改为已支付");
             if(r==1){
                 //3. 创建支付成功的消息
                 TradeMqProducerTemp tradeMqProducerTemp = new TradeMqProducerTemp();
@@ -112,7 +113,7 @@ public class PayServiceImpl implements IPayService{
                 tradeMqProducerTemp.setCreateTime(new Date());
                 //4. 将消息持久化数据库
                 mqProducerTempMapper.insert(tradeMqProducerTemp);
-                log.info("将支付成功消息持久化到数据库");
+                log.info("===============将支付成功消息持久化到数据库");
 
                 //在线程池中进行处理
                 threadPoolTaskExecutor.submit(new Runnable() {
@@ -126,10 +127,10 @@ public class PayServiceImpl implements IPayService{
                             e.printStackTrace();
                         }
                         if(result.getSendStatus().equals(SendStatus.SEND_OK)){
-                            log.info("消息发送成功");
+                            log.info("===============消息发送成功");
                             //6. 等待发送结果,如果MQ接受到消息,删除发送成功的消息
                             mqProducerTempMapper.deleteByPrimaryKey(tradeMqProducerTemp.getId());
-                            log.info("持久化到数据库的消息删除");
+                            log.info("===============持久化到数据库的消息删除");
                         }
                     }
                 });

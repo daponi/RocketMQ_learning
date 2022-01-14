@@ -41,7 +41,7 @@ public class PaymentListener implements RocketMQListener<MessageExt> {
             tradeOrder.setPayStatus(ShopCode.SHOP_ORDER_PAY_STATUS_IS_PAY.getCode());
             //4.更新订单数据到数据库
             orderMapper.updateByPrimaryKey(tradeOrder);
-            log.info("更改订单支付状态为已支付");
+            log.info("=================更改订单支付状态为已支付");
         } catch (Exception e) {
             e.printStackTrace();
         }
