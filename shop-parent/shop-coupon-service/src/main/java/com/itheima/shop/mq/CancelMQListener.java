@@ -37,7 +37,7 @@ public class CancelMQListener implements RocketMQListener<MessageExt> {
             if (mqEntity.getCouponId() != null) {
                 // 2. 查询优惠券信息
                 TradeCoupon coupon = couponMapper.selectByPrimaryKey(mqEntity.getCouponId());
-                // 3.更改优惠券状态
+                // 3. 更改优惠券状态
                 coupon.setUsedTime(null);
                 coupon.setIsUsed(ShopCode.SHOP_COUPON_UNUSED.getCode());
                 coupon.setOrderId(null);
