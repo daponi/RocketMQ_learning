@@ -25,6 +25,12 @@ import org.apache.rocketmq.client.log.ClientLogger;
 import org.apache.rocketmq.logging.InternalLogger;
 import org.apache.rocketmq.remoting.RPCHook;
 
+/**
+ * 整个JVM中只存在一个MQClientManager实例，维护一个MQClientInstance缓存表
+ * ConcurrentMap<String /clientId/,MQClientInstance>factoryTable=new ConcurrentHashMap<String, MQClientInstance>();
+ * 同一个clientId只会创建一个MQClientInstance
+ * MQClientInstance封装了RocketMQ网络处理API，是消息生产者和消息消费者与NameServer、Broker打交道的网络通道
+ */
 public class MQClientManager {
     private final static InternalLogger log = ClientLogger.getLog();
     private static MQClientManager instance = new MQClientManager();
@@ -44,9 +50,19 @@ public class MQClientManager {
         return getOrCreateMQClientInstance(clientConfig, null);
     }
 
+    /**
+     * 创建一个MQClientInstance。
+     * MQClientInstance封装了RocketMQ网络处理API，是消息生产者和消息消费者与NameServer、Broker打交道的网络通道
+     * @param clientConfig
+     * @param rpcHook
+     * @return
+     */
     public MQClientInstance getOrCreateMQClientInstance(final ClientConfig clientConfig, RPCHook rpcHook) {
+        //构建客户端ID
         String clientId = clientConfig.buildMQClientId();
+        //根据客户端ID获得客户端实例
         MQClientInstance instance = this.factoryTable.get(clientId);
+        //实例如果为空就创建新的实例,并添加到实例表中
         if (null == instance) {
             instance =
                 new MQClientInstance(clientConfig.cloneClientConfig(),

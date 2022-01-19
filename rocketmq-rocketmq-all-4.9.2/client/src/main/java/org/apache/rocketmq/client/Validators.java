@@ -85,6 +85,7 @@ public class Validators {
         }
         // topic
         Validators.checkTopic(msg.getTopic());
+        // 默认部分主题不被发送
         Validators.isNotAllowedSendTopic(msg.getTopic());
 
         // body
@@ -107,6 +108,7 @@ public class Validators {
             throw new MQClientException("The specified topic is blank", null);
         }
 
+        // 通过正则表达式验证Topic
         if (!regularExpressionMatcher(topic, PATTERN)) {
             throw new MQClientException(String.format(
                 "The specified topic[%s] contains illegal characters, allowing only %s", topic,

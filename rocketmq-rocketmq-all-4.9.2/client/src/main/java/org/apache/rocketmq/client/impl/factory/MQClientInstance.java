@@ -84,6 +84,9 @@ import org.apache.rocketmq.remoting.exception.RemotingException;
 import org.apache.rocketmq.remoting.netty.NettyClientConfig;
 import org.apache.rocketmq.remoting.protocol.RemotingCommand;
 
+/**
+ *  MQClientInstance封装了RocketMQ网络处理API，是消息生产者和消息消费者与NameServer、Broker打交道的网络通道
+ */
 public class MQClientInstance {
     private final static long LOCK_TIMEOUT_MILLIS = 3000;
     private final InternalLogger log = ClientLogger.getLog();
@@ -158,8 +161,11 @@ public class MQClientInstance {
     }
 
     public static TopicPublishInfo topicRouteData2TopicPublishInfo(final String topic, final TopicRouteData route) {
+        //创建TopicPublishInfo对象
         TopicPublishInfo info = new TopicPublishInfo();
+        //关联topicRoute
         info.setTopicRouteData(route);
+        //顺序消息,更新TopicPublishInfo
         if (route.getOrderTopicConf() != null && route.getOrderTopicConf().length() > 0) {
             String[] brokers = route.getOrderTopicConf().split(";");
             for (String broker : brokers) {
@@ -173,12 +179,17 @@ public class MQClientInstance {
 
             info.setOrderTopic(true);
         } else {
+            //非顺序消息更新TopicPublishInfo
             List<QueueData> qds = route.getQueueDatas();
             Collections.sort(qds);
+            //遍历topic队列信息
             for (QueueData qd : qds) {
+                //是否是写队列
                 if (PermName.isWriteable(qd.getPerm())) {
                     BrokerData brokerData = null;
+                    //遍历写队列Broker
                     for (BrokerData bd : route.getBrokerDatas()) {
+                        //根据名称获得读队列对应的Broker
                         if (bd.getBrokerName().equals(qd.getBrokerName())) {
                             brokerData = bd;
                             break;
@@ -193,6 +204,7 @@ public class MQClientInstance {
                         continue;
                     }
 
+                    //封装TopicPublishInfo写队列
                     for (int i = 0; i < qd.getWriteQueueNums(); i++) {
                         MessageQueue mq = new MessageQueue(topic, qd.getBrokerName(), i);
                         info.getMessageQueueList().add(mq);
@@ -203,6 +215,7 @@ public class MQClientInstance {
             info.setOrderTopic(false);
         }
 
+        //返回TopicPublishInfo对象
         return info;
     }
 
@@ -605,9 +618,11 @@ public class MQClientInstance {
     public boolean updateTopicRouteInfoFromNameServer(final String topic, boolean isDefault,
         DefaultMQProducer defaultMQProducer) {
         try {
+            // 获得锁
             if (this.lockNamesrv.tryLock(LOCK_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS)) {
                 try {
                     TopicRouteData topicRouteData;
+                    // 若设置自动创建Topic，则没有指定Topic就用默认Topic从NameServer获取路由信息
                     if (isDefault && defaultMQProducer != null) {
                         topicRouteData = this.mQClientAPIImpl.getDefaultTopicRouteInfoFromNameServer(defaultMQProducer.getCreateTopicKey(),
                             clientConfig.getMqClientApiTimeout());
@@ -619,10 +634,12 @@ public class MQClientInstance {
                             }
                         }
                     } else {
+                        // 使用指定Topic从nameServer查找路由信息topicRouteData
                         topicRouteData = this.mQClientAPIImpl.getTopicRouteInfoFromNameServer(topic, clientConfig.getMqClientApiTimeout());
                     }
                     if (topicRouteData != null) {
                         TopicRouteData old = this.topicRouteTable.get(topic);
+                        // 比较查出来的路由信息和本地缓存路由表信息是否相同，若不同则更新本地缓存路由
                         boolean changed = topicRouteDataIsChange(old, topicRouteData);
                         if (!changed) {
                             changed = this.isNeedUpdateTopicRouteInfo(topic);
@@ -639,12 +656,15 @@ public class MQClientInstance {
 
                             // Update Pub info
                             {
+                                // 将查出来的路由信息topicRouteData转换为进行转发的TopicPublishInfo
                                 TopicPublishInfo publishInfo = topicRouteData2TopicPublishInfo(topic, topicRouteData);
                                 publishInfo.setHaveTopicRouterInfo(true);
+                                //遍历生产者
                                 Iterator<Entry<String, MQProducerInner>> it = this.producerTable.entrySet().iterator();
                                 while (it.hasNext()) {
                                     Entry<String, MQProducerInner> entry = it.next();
                                     MQProducerInner impl = entry.getValue();
+                                    //生产者不为空时,更新publishInfo信息
                                     if (impl != null) {
                                         impl.updateTopicPublishInfo(topic, publishInfo);
                                     }

@@ -24,10 +24,22 @@ import org.apache.rocketmq.common.protocol.route.QueueData;
 import org.apache.rocketmq.common.protocol.route.TopicRouteData;
 
 public class TopicPublishInfo {
+    /**
+     * 是否是顺序消息
+     */
     private boolean orderTopic = false;
     private boolean haveTopicRouterInfo = false;
+    /**
+     * 该主题消息队列
+     */
     private List<MessageQueue> messageQueueList = new ArrayList<MessageQueue>();
+    /**
+     * 每选择一次消息队列,该值+1
+     */
     private volatile ThreadLocalIndex sendWhichQueue = new ThreadLocalIndex();
+    /**
+     * 关联Topic路由元信息
+     */
     private TopicRouteData topicRouteData;
 
     public boolean isOrderTopic() {
@@ -67,28 +79,37 @@ public class TopicPublishInfo {
     }
 
     public MessageQueue selectOneMessageQueue(final String lastBrokerName) {
+        //第一次选择队列
         if (lastBrokerName == null) {
             return selectOneMessageQueue();
         } else {
+            //遍历消息队列集合
             for (int i = 0; i < this.messageQueueList.size(); i++) {
+                //sendWhichQueue自增后取模
                 int index = this.sendWhichQueue.incrementAndGet();
                 int pos = Math.abs(index) % this.messageQueueList.size();
                 if (pos < 0)
                     pos = 0;
                 MessageQueue mq = this.messageQueueList.get(pos);
+                //规避上次Broker队列
                 if (!mq.getBrokerName().equals(lastBrokerName)) {
                     return mq;
                 }
             }
+            //如果以上情况都不满足,返回sendWhichQueue取模后的队列
             return selectOneMessageQueue();
         }
     }
 
+        //第一次选择队列
     public MessageQueue selectOneMessageQueue() {
+        //sendWhichQueue自增
         int index = this.sendWhichQueue.incrementAndGet();
+        //对队列大小取模
         int pos = Math.abs(index) % this.messageQueueList.size();
         if (pos < 0)
             pos = 0;
+        //返回对应的队列
         return this.messageQueueList.get(pos);
     }
 

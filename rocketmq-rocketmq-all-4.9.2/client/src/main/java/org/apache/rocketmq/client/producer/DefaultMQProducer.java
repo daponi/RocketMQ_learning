@@ -279,7 +279,9 @@ public class DefaultMQProducer extends ClientConfig implements MQProducer {
      */
     @Override
     public void start() throws MQClientException {
+        // 设置组名
         this.setProducerGroup(withNamespace(this.producerGroup));
+        // 启动
         this.defaultMQProducerImpl.start();
         if (null != traceDispatcher) {
             try {
@@ -983,16 +985,20 @@ public class DefaultMQProducer extends ClientConfig implements MQProducer {
     private MessageBatch batch(Collection<Message> msgs) throws MQClientException {
         MessageBatch msgBatch;
         try {
+            //将集合消息封装到MessageBatch
             msgBatch = MessageBatch.generateFromList(msgs);
+            //遍历消息集合,检查消息合法性,设置消息ID,设置Topic
             for (Message message : msgBatch) {
                 Validators.checkMessage(message, this);
                 MessageClientIDSetter.setUniqID(message);
                 message.setTopic(withNamespace(message.getTopic()));
             }
+            // 压缩消息，对消息进行编码，减少消息大小
             msgBatch.setBody(msgBatch.encode());
         } catch (Exception e) {
             throw new MQClientException("Failed to initiate the MessageBatch", e);
         }
+        //设置msgBatch的topic
         msgBatch.setTopic(withNamespace(msgBatch.getTopic()));
         return msgBatch;
     }
