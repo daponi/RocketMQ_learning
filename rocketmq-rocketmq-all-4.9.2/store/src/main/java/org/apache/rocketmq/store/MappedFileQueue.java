@@ -127,17 +127,27 @@ public class MappedFileQueue {
         return mfs;
     }
 
+    /**
+     * 截断脏文件
+     * @param offset
+     */
     public void truncateDirtyFiles(long offset) {
         List<MappedFile> willRemoveFiles = new ArrayList<MappedFile>();
 
+        //遍历目录下文件
         for (MappedFile file : this.mappedFiles) {
+            //文件尾部的偏移量
             long fileTailOffset = file.getFileFromOffset() + this.mappedFileSize;
+            //文件尾部的偏移量大于offset
             if (fileTailOffset > offset) {
+                //offset大于文件的起始偏移量
                 if (offset >= file.getFileFromOffset()) {
+                    //更新wrotePosition、committedPosition、flushedPosistion
                     file.setWrotePosition((int) (offset % this.mappedFileSize));
                     file.setCommittedPosition((int) (offset % this.mappedFileSize));
                     file.setFlushedPosition((int) (offset % this.mappedFileSize));
                 } else {
+                    //offset小于文件的起始偏移量,说明该文件是有效文件后面创建的,释放mappedFile占用内存,删除文件
                     file.destroy(1000);
                     willRemoveFiles.add(file);
                 }
@@ -172,7 +182,9 @@ public class MappedFileQueue {
 
 
     public boolean load() {
+        //指向CommitLog文件目录
         File dir = new File(this.storePath);
+        //获得文件数组
         File[] ls = dir.listFiles();
         if (ls != null) {
             return doLoad(Arrays.asList(ls));
@@ -181,10 +193,12 @@ public class MappedFileQueue {
     }
 
     public boolean doLoad(List<File> files) {
-        // ascending order
+        // ascending order   文件排序
         files.sort(Comparator.comparing(File::getName));
 
+        //遍历文件
         for (File file : files) {
+            //如果文件大小和配置文件不一致,退出
             if (file.length() != this.mappedFileSize) {
                 log.warn(file + "\t" + file.length()
                         + " length not matched message store config value, ignore it");
@@ -192,11 +206,13 @@ public class MappedFileQueue {
             }
 
             try {
+                //创建映射文件
                 MappedFile mappedFile = new MappedFile(file.getPath(), mappedFileSize);
 
                 mappedFile.setWrotePosition(this.mappedFileSize);
                 mappedFile.setFlushedPosition(this.mappedFileSize);
                 mappedFile.setCommittedPosition(this.mappedFileSize);
+                //将映射文件添加到队列
                 this.mappedFiles.add(mappedFile);
                 log.info("load " + file.getPath() + " OK");
             } catch (IOException e) {
@@ -384,6 +400,14 @@ public class MappedFileQueue {
         }
     }
 
+    /**
+     * 删除过期文件
+     * @param expiredTime   文件保留的时间，默认72小时
+     * @param deleteFilesInterval   删除物理文件的间隔，默认100ms
+     * @param intervalForcibly  线程被占用,第一次拒绝删除后能保留的最大时间,超过该时间,文件将被强制删除,默认2分钟
+     * @param cleanImmediately  是否立即删除
+     * @return
+     */
     public int deleteExpiredFileByTime(final long expiredTime,
         final int deleteFilesInterval,
         final long intervalForcibly,
@@ -397,9 +421,12 @@ public class MappedFileQueue {
         int deleteCount = 0;
         List<MappedFile> files = new ArrayList<MappedFile>();
         if (null != mfs) {
+            //遍历每个文件
             for (int i = 0; i < mfsLength; i++) {
                 MappedFile mappedFile = (MappedFile) mfs[i];
+                //计算文件存活时间
                 long liveMaxTimestamp = mappedFile.getLastModifiedTimestamp() + expiredTime;
+                //如果超过72小时,执行文件删除
                 if (System.currentTimeMillis() >= liveMaxTimestamp || cleanImmediately) {
                     if (mappedFile.destroy(intervalForcibly)) {
                         files.add(mappedFile);

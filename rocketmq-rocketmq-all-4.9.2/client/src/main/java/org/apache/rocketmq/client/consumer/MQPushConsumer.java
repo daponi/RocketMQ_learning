@@ -41,12 +41,19 @@ public interface MQPushConsumer extends MQConsumer {
     @Deprecated
     void registerMessageListener(MessageListener messageListener);
 
+    /**
+     * 注册并发事件监听器
+     */
     void registerMessageListener(final MessageListenerConcurrently messageListener);
 
+    /**
+     * 注册顺序消息事件监听器
+     */
     void registerMessageListener(final MessageListenerOrderly messageListener);
 
     /**
      * Subscribe some topic
+     * 基于主题订阅消息，消息过滤使用表达式
      *
      * @param subExpression subscription expression.it only support or operation such as "tag1 || tag2 || tag3" <br> if
      * null or * expression,meaning subscribe
@@ -57,7 +64,7 @@ public interface MQPushConsumer extends MQConsumer {
     /**
      * This method will be removed in the version 5.0.0,because filterServer was removed,and method <code>subscribe(final String topic, final MessageSelector messageSelector)</code>
      * is recommended.
-     *
+     *  基于主题订阅消息，
      * Subscribe some topic
      *
      * @param fullClassName full class name,must extend org.apache.rocketmq.common.filter. MessageFilter
@@ -69,6 +76,7 @@ public interface MQPushConsumer extends MQConsumer {
 
     /**
      * Subscribe some topic with selector.
+     * 订阅消息，并指定队列选择器
      * <p>
      * This interface also has the ability of {@link #subscribe(String, String)},
      * and, support other message selection, such as {@link org.apache.rocketmq.common.filter.ExpressionType#SQL92}.
@@ -95,6 +103,7 @@ public interface MQPushConsumer extends MQConsumer {
 
     /**
      * Update the consumer thread pool size Dynamically
+     * 取消消息订阅
      */
     void updateCorePoolSize(int corePoolSize);
 
