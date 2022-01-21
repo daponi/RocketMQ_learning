@@ -25,6 +25,16 @@ public class PullResultExt extends PullResult {
     private final long suggestWhichBrokerId;
     private byte[] messageBinary;
 
+    /**
+     * 构建为PullResult
+     * @param pullStatus
+     * @param nextBeginOffset
+     * @param minOffset
+     * @param maxOffset
+     * @param msgFoundList
+     * @param suggestWhichBrokerId
+     * @param messageBinary
+     */
     public PullResultExt(PullStatus pullStatus, long nextBeginOffset, long minOffset, long maxOffset,
         List<MessageExt> msgFoundList, final long suggestWhichBrokerId, final byte[] messageBinary) {
         super(pullStatus, nextBeginOffset, minOffset, maxOffset, msgFoundList);

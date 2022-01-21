@@ -194,8 +194,8 @@ public class DefaultMessageStore implements MessageStore {
 
                 log.info("load over, and the max phy offset = {}", this.getMaxPhyOffset());
 
-                //加载延时队列
                 if (null != scheduleMessageService) {
+                //加载延时消息队列线程，并在load()中启动start()
                     result =  this.scheduleMessageService.load();
                 }
             }
@@ -263,6 +263,7 @@ public class DefaultMessageStore implements MessageStore {
              *
              * RocketMQ通过开启一个线程ReputMessageService来准实时转发CommitLog文件更新事件，相应的任务处理器根据转发的消息及时更新ConsumerQueue、IndexFile文件。
              * 开启reputMessageService线程的，run方法进行消息分发到consumerQueue、indexFile
+             * 且当新消息到达时唤醒挂起线程触发一次检查是否符合开启长轮询机制的客户端拉取请求
              */
             this.reputMessageService.start();
 
@@ -2045,14 +2046,18 @@ public class DefaultMessageStore implements MessageStore {
                                 DefaultMessageStore.this.commitLog.checkMessageAndReturnSize(result.getByteBuffer(), false, false);
                             int size = dispatchRequest.getBufferSize() == -1 ? dispatchRequest.getMsgSize() : dispatchRequest.getBufferSize();
 
+                            // 转发请求成功
                             if (dispatchRequest.isSuccess()) {
                                 if (size > 0) {
                                     // 对消息数据进行分发
                                     DefaultMessageStore.this.doDispatch(dispatchRequest);
 
+                                    // 当新消息达到master角色的Broker时,进行通知监听器进行处理
                                     if (BrokerRole.SLAVE != DefaultMessageStore.this.getMessageStoreConfig().getBrokerRole()
                                             && DefaultMessageStore.this.brokerConfig.isLongPollingEnable()
                                             && DefaultMessageStore.this.messageArrivingListener != null) {
+
+                                        // 调用监听器进行唤醒线程对新消息进行是否匹配开启长轮询机制的客户端拉取请求
                                         DefaultMessageStore.this.messageArrivingListener.arriving(dispatchRequest.getTopic(),
                                             dispatchRequest.getQueueId(), dispatchRequest.getConsumeQueueOffset() + 1,
                                             dispatchRequest.getTagsCode(), dispatchRequest.getStoreTimestamp(),
@@ -2107,7 +2112,7 @@ public class DefaultMessageStore implements MessageStore {
                 try {
                     // //每隔1毫秒就继续尝试推送消息到消息消费队列和索引文件
                     Thread.sleep(1);
-                    // 执行消息数据分发
+                    // 执行消息数据分发,也是长轮询核心逻辑代码入口
                     this.doReput();
                 } catch (Exception e) {
                     DefaultMessageStore.log.warn(this.getServiceName() + " service has exception. ", e);

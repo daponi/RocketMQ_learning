@@ -153,7 +153,7 @@ public class PullAPIWrapper {
      * @param brokerSuspendMaxTimeMillis
      * @param timeoutMillis
      * @param communicationMode
-     * @param pullCallback
+     * @param pullCallback 回调函数，客户端对拉取到的消息进行相应的处理
      * @return
      * @throws MQClientException
      * @throws RemotingException
@@ -220,7 +220,7 @@ public class PullAPIWrapper {
                 brokerAddr = computePullFromWhichFilterServer(mq.getTopic(), brokerAddr);
             }
 
-            // 发起请求拉取消息数据
+            // 发起请求拉取消息数据，pullcallback()回调函数是客户端对拉取到的消息进行相应的处理
             PullResult pullResult = this.mQClientFactory.getMQClientAPIImpl().pullMessage(
                 brokerAddr,
                 requestHeader,

@@ -250,7 +250,7 @@ public class MQClientInstance {
                     this.startScheduledTask();
                     // Start pull service 拉取服务启动
                     this.pullMessageService.start();
-                    // Start rebalance service
+                    // Start rebalance service  消息队列负载与重新分布机制启动
                     this.rebalanceService.start();
                     // Start push service
                     this.defaultMQProducer.getDefaultMQProducerImpl().start(false);
@@ -970,11 +970,16 @@ public class MQClientInstance {
         this.rebalanceService.wakeup();
     }
 
+    /**
+     * 	ebalanceService线程默认每隔20s执行一次mqClientFactory.doRebalance方法
+     */
     public void doRebalance() {
+        //遍历订阅消息对每个主题的订阅的队列进行重新负载
         for (Map.Entry<String, MQConsumerInner> entry : this.consumerTable.entrySet()) {
             MQConsumerInner impl = entry.getValue();
             if (impl != null) {
                 try {
+                    // 消息队列负载与重新分布机制，分为pull和push模式
                     impl.doRebalance();
                 } catch (Throwable e) {
                     log.error("doRebalance exception", e);

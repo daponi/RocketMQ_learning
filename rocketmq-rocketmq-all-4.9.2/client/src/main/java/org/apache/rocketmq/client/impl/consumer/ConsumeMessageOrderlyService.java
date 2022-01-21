@@ -87,6 +87,7 @@ public class ConsumeMessageOrderlyService implements ConsumeMessageService {
     }
 
     public void start() {
+        //如果消息模式为集群模式，启动定时任务，默认每隔20s执行一次锁定分配给自己的消息消费队列,处理逻辑在run方法中
         if (MessageModel.CLUSTERING.equals(ConsumeMessageOrderlyService.this.defaultMQPushConsumerImpl.messageModel())) {
             this.scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
                 @Override
@@ -234,6 +235,12 @@ public class ConsumeMessageOrderlyService implements ConsumeMessageService {
         return false;
     }
 
+    /**
+     *构建消息任务,并提交消费线程池中
+     * * @param processQueue
+     * @param messageQueue
+     * @param suspendTimeMillis
+     */
     private void submitConsumeRequestLater(
         final ProcessQueue processQueue,
         final MessageQueue messageQueue,
@@ -446,6 +453,7 @@ public class ConsumeMessageOrderlyService implements ConsumeMessageService {
 
                         long interval = System.currentTimeMillis() - beginTime;
                         if (interval > MAX_TIME_CONSUME_CONTINUOUSLY) {
+                            //构建消息任务,并提交消费线程池中
                             ConsumeMessageOrderlyService.this.submitConsumeRequestLater(processQueue, messageQueue, 10);
                             break;
                         }

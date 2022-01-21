@@ -214,12 +214,18 @@ public abstract class RebalanceImpl {
         }
     }
 
+    /**
+     * 消息队列负载与重新分布机制,根据主题进行负载均衡
+     * @param isOrder
+     */
     public void doRebalance(final boolean isOrder) {
         Map<String, SubscriptionData> subTable = this.getSubscriptionInner();
         if (subTable != null) {
+            //遍历订阅消息对每个主题的订阅的队列进行重新负载
             for (final Map.Entry<String, SubscriptionData> entry : subTable.entrySet()) {
                 final String topic = entry.getKey();
                 try {
+                    //根据主题进行负载均衡
                     this.rebalanceByTopic(topic, isOrder);
                 } catch (Throwable e) {
                     if (!topic.startsWith(MixAll.RETRY_GROUP_TOPIC_PREFIX)) {
@@ -236,11 +242,18 @@ public abstract class RebalanceImpl {
         return subscriptionInner;
     }
 
+    /**
+     * 根据主题进行负载均衡
+     * @param topic
+     * @param isOrder
+     */
     private void rebalanceByTopic(final String topic, final boolean isOrder) {
         switch (messageModel) {
-            case BROADCASTING: {
+            case BROADCASTING: { // 广播模式
+                //从主题订阅消息缓存表中获取主题的队列信息
                 Set<MessageQueue> mqSet = this.topicSubscribeInfoTable.get(topic);
                 if (mqSet != null) {
+                    // 负载均衡对广播模式每意义，只需要做更新队列处理即可
                     boolean changed = this.updateProcessQueueTableInRebalance(topic, mqSet, isOrder);
                     if (changed) {
                         this.messageQueueChanged(topic, mqSet, mqSet);
@@ -255,8 +268,10 @@ public abstract class RebalanceImpl {
                 }
                 break;
             }
-            case CLUSTERING: {
+            case CLUSTERING: {//集群模式
+                //从主题订阅消息缓存表中获取主题的队列信息
                 Set<MessageQueue> mqSet = this.topicSubscribeInfoTable.get(topic);
+                //查找该主题订阅组所有的消费者ID
                 List<String> cidAll = this.mQClientFactory.findConsumerIdList(topic, consumerGroup);
                 if (null == mqSet) {
                     if (!topic.startsWith(MixAll.RETRY_GROUP_TOPIC_PREFIX)) {
@@ -268,15 +283,19 @@ public abstract class RebalanceImpl {
                     log.warn("doRebalance, {} {}, get consumer id list failed", consumerGroup, topic);
                 }
 
+                //给消费者重新分配队列
                 if (mqSet != null && cidAll != null) {
                     List<MessageQueue> mqAll = new ArrayList<MessageQueue>();
                     mqAll.addAll(mqSet);
 
+                    //对消费者ID和主题队列排序
                     Collections.sort(mqAll);
                     Collections.sort(cidAll);
 
+                    // 取出负载均衡的策略
                     AllocateMessageQueueStrategy strategy = this.allocateMessageQueueStrategy;
 
+                    // 根据均衡的策略重新分布
                     List<MessageQueue> allocateResult = null;
                     try {
                         allocateResult = strategy.allocate(

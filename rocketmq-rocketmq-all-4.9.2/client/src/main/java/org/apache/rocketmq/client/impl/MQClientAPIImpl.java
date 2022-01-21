@@ -706,6 +706,18 @@ public class MQClientAPIImpl {
         return sendResult;
     }
 
+    /**
+     * 根据消费的模式，对客户端拉取到的消息进行相应的处理
+     * @param addr
+     * @param requestHeader
+     * @param timeoutMillis
+     * @param communicationMode
+     * @param pullCallback
+     * @return
+     * @throws RemotingException
+     * @throws MQBrokerException
+     * @throws InterruptedException
+     */
     public PullResult pullMessage(
         final String addr,
         final PullMessageRequestHeader requestHeader,
@@ -716,13 +728,13 @@ public class MQClientAPIImpl {
         RemotingCommand request = RemotingCommand.createRequestCommand(RequestCode.PULL_MESSAGE, requestHeader);
 
         switch (communicationMode) {
-            case ONEWAY:
+            case ONEWAY://单向拉取
                 assert false;
                 return null;
-            case ASYNC:
+            case ASYNC://异步拉取，直接返回null
                 this.pullMessageAsync(addr, request, timeoutMillis, pullCallback);
                 return null;
-            case SYNC:
+            case SYNC://同步拉取，进行阻塞
                 return this.pullMessageSync(addr, request, timeoutMillis);
             default:
                 assert false;
@@ -764,20 +776,41 @@ public class MQClientAPIImpl {
         });
     }
 
+    /**
+     * 同步拉取消息，并处理响应的消息
+     * @param addr
+     * @param request
+     * @param timeoutMillis
+     * @return
+     * @throws RemotingException
+     * @throws InterruptedException
+     * @throws MQBrokerException
+     */
     private PullResult pullMessageSync(
         final String addr,
         final RemotingCommand request,
         final long timeoutMillis
     ) throws RemotingException, InterruptedException, MQBrokerException {
+        // 得到拉取消息的响应
         RemotingCommand response = this.remotingClient.invokeSync(addr, request, timeoutMillis);
         assert response != null;
+        // 对成功拉取的消息进行处理
         return this.processPullResponse(response, addr);
     }
 
+    /**
+     * 处理客户端从broker拉取的消息
+     * @param response
+     * @param addr
+     * @return
+     * @throws MQBrokerException
+     * @throws RemotingCommandException
+     */
     private PullResult processPullResponse(
         final RemotingCommand response,
         final String addr) throws MQBrokerException, RemotingCommandException {
         PullStatus pullStatus = PullStatus.NO_NEW_MSG;
+        //判断响应结果
         switch (response.getCode()) {
             case ResponseCode.SUCCESS:
                 pullStatus = PullStatus.FOUND;
@@ -796,9 +829,11 @@ public class MQClientAPIImpl {
                 throw new MQBrokerException(response.getCode(), response.getRemark(), addr);
         }
 
+        // 解析响应头
         PullMessageResponseHeader responseHeader =
             (PullMessageResponseHeader) response.decodeCommandCustomHeader(PullMessageResponseHeader.class);
 
+        // 返回封装的结果类PullResultExt
         return new PullResultExt(pullStatus, responseHeader.getNextBeginOffset(), responseHeader.getMinOffset(),
             responseHeader.getMaxOffset(), null, responseHeader.getSuggestWhichBrokerId(), response.getBody());
     }

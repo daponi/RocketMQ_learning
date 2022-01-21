@@ -31,6 +31,7 @@ public class NotifyMessageArrivingListener implements MessageArrivingListener {
     @Override
     public void arriving(String topic, int queueId, long logicOffset, long tagsCode,
         long msgStoreTime, byte[] filterBitMap, Map<String, String> properties) {
+        // 唤醒线程检查broker收到的新消息是否匹配开启长轮询机制的客户端拉取请求
         this.pullRequestHoldService.notifyMessageArriving(topic, queueId, logicOffset, tagsCode,
             msgStoreTime, filterBitMap, properties);
     }
