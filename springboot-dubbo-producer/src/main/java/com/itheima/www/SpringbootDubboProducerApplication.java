@@ -7,7 +7,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 /**
  * 生产者Demo
  * 结合springboot、dubbo、zookeeper
- *  dubbo作为RPC远程调用，Zookeeper作为注册中心
+ * dubbo作为RPC远程调用，Zookeeper作为注册中心
  */
 @EnableDubboConfiguration
 @SpringBootApplication
